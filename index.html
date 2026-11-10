@@ -198,16 +198,28 @@ const menuPagesByTheme={
  'Biocarburants et e-fuels':'Biocarburants & e-fuels','Électrification':'Électrification',
  'Qualité de l’air':'Qualité de l’air et surveillance','Carbone des sols':'Carbone des sols',
  'Surveillance environnementale':'Qualité de l’air et surveillance'};
+// Sélection des pages du menu pilotée par l'intention du public, et non par la mission choisie.
+// Les intitulés de travail doivent être confirmés lors de la validation définitive du menu.
+const menuByNeed={
+ decider:[['Analyses & éclairages','Accéder aux comparaisons, évaluations et éléments utiles à la décision.'],['Grands débats','Situer les arbitrages dans les débats d’intérêt collectif.']],
+ anticiper:[['Analyses & éclairages','Explorer les tendances, scénarios et perspectives documentées.'],['Grands débats','Mettre en perspective les transformations et les choix à venir.']],
+ solution:[['Solutions et technologies','Identifier les solutions, leurs applications et leur maturité.'],['Recherche, développement et innovation','Comprendre les compétences scientifiques et les étapes de développement.']],
+ collaborer:[['Collaborer','Identifier les formes de collaboration, les compétences mobilisables et les modalités de prise de contact.'],['Recherche, développement et innovation','Approfondir les capacités de R&D&I mobilisables dans une coopération.']],
+ explorer:[['Recherche, développement et innovation','Découvrir les axes scientifiques, les travaux et les moyens de recherche.'],['Collaborer','Explorer les possibilités de partenariat scientifique.']],
+ cooperate:[['Collaborer','Identifier les modalités de coopération et les interlocuteurs scientifiques.'],['Recherche, développement et innovation','Situer les compétences, projets et axes de recherche.']],
+ comprendre:[['Analyses & éclairages','Accéder aux explications et mises en perspective.'],['Grands débats','Explorer les questions et controverses d’intérêt collectif.']],
+ evaluer:[['Analyses & éclairages','Consulter les évaluations, méthodes et éléments de comparaison.'],['Grands débats','Contextualiser les effets et les choix collectifs.']],
+ learn:[['Formation','Découvrir les offres, parcours et ressources de formation.']],
+ researchtrain:[['Formation','Explorer les parcours de formation par la recherche.'],['Recherche, développement et innovation','Découvrir les activités et équipes de recherche concernées.']]
+};
 function relevantMenuPages(){
  const domain=domains.find(d=>d.id===s.domain);
  const theme=menuPagesByTheme[s.theme]||s.theme;
- const out=[{type:'Carrefour',name:domain.name,why:'Situer le sujet dans les enjeux et les cycles du domaine d’action sélectionné.',status:'Architecture de référence'}];
+ const out=[];
+ (menuByNeed[s.need]||[]).forEach(([name,why],i)=>out.push({type:'Page du menu',name,why,status:i===0?'Prioritaire · besoin exprimé':'Complémentaire · besoin exprimé',priority:i===0?'Prioritaire':'Complémentaire'}));
+ out.push({type:'Carrefour',name:domain.name,why:'Situer le sujet dans les enjeux et les cycles du domaine d’action sélectionné.',status:'Architecture de référence',priority:'Contextuel'});
  const thematic=theme.split(' / ');
- thematic.forEach(t=>out.push({type:'Page thématique',name:t,why:'Accéder à la vision, aux solutions, aux impacts, à la recherche et aux ressources du sujet.',status:thematic.length>1?'Pages distinctes possibles · à confirmer':'Rattachement illustratif'}));
- if(s.role==='produire'||['solution','collaborer','explorer','cooperate','researchtrain'].includes(s.need))out.push({type:'Entrée transverse',name:'Recherche, développement et innovation',why:'Relier les connaissances, le développement technologique et le transfert vers les applications.',status:'Intitulé de travail'});
- if(s.role==='analyser'||['decider','anticiper','comprendre','evaluer'].includes(s.need))out.push({type:'Rubrique transverse',name:'Analyses & éclairages',why:'Apporter des clés de compréhension, des comparaisons et des éléments utiles au débat.',status:'Rubrique proposée'});
- if(s.role==='former'||['learn','researchtrain'].includes(s.need))out.push({type:'Entrée transverse',name:'Formation',why:'Orienter vers les formations, les compétences et les parcours par la recherche.',status:'Architecture de référence'});
- if(['decider','anticiper','comprendre','evaluer'].includes(s.need))out.push({type:'Entrée transverse',name:'Grands débats',why:'Mettre en perspective les controverses, les choix et les questions d’intérêt collectif.',status:'Périmètre éditorial à confirmer'});
+ thematic.forEach(t=>out.push({type:'Page thématique',name:t,why:'Accéder à la vision, aux solutions, aux impacts, à la recherche et aux ressources du sujet.',status:thematic.length>1?'Pages distinctes possibles · à confirmer':'Rattachement illustratif',priority:'Prioritaire'}));
  return out;
 }
 const getFunctionId=()=>s.role==='produire'?s.stage:s.role==='analyser'?s.analysis:s.training;
@@ -267,7 +279,7 @@ const contents=editorialActivations(s.need,s.role,getFunctionId());
  const institutionnelles=menu.filter(x=>x.type!=='Carrefour'&&x.type!=='Page thématique');
  const carrefours=menu.filter(x=>x.type==='Carrefour');
  const thematiques=menu.filter(x=>x.type==='Page thématique');
- const menuCard=x=>familyCard(x.type,x.name,x.why,x.status,x.type==='Page thématique'?'Prioritaire':'Contextuel','À relier aux autres pages, blocs et publications utiles au besoin');
+ const menuCard=x=>familyCard(x.type,x.name,x.why,x.status,x.priority||'Contextuel','À relier aux autres pages, blocs et publications utiles au besoin');
  el('menuPages').innerHTML=group('1 · Pages institutionnelles et transversales','Entrées du menu pertinentes pour contextualiser ou approfondir le besoin.',institutionnelles.map(menuCard))+
  group('2 · Pages carrefours','Grand domaine d’action et cycles concernés.',carrefours.map(menuCard))+
  group('3 · Pages thématiques','Pages susceptibles d’approfondir le sujet et d’accueillir les blocs ciblés.',thematiques.map(menuCard))+
